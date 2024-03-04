@@ -27,4 +27,4 @@
 	});
 </script>
 
-<div class="h-screen" bind:this={mapContainer} />
+<div class="w-full h-full" bind:this={mapContainer} />
