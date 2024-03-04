@@ -26,8 +26,7 @@
 	};
 
 	let width: number;
-	let drawerHidden: boolean = false;
-	let backdrop: boolean = false;
+	let drawerHidden: boolean = true;
 	let activateClickOutside = true;
 
 	const toggleDrawer = () => {
