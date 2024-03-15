@@ -26,27 +26,6 @@ export enum Orientation {
 
 export interface Device {
   device_urn: string;
-  loc_name: string;
-  loc_country: string;
-  device_sn: string | null;
-  device_contact_name: string | null;
-  device_contact_email: string | null;
-  device: number;
-  when_captured: Date; // "2021-08-25T00:00:00Z"
-  env_temp: number;
-  env_humid: number
-  env_press: number;
-  bat_voltage: number;
-  lnd_7318c: number;
-  pms_pm02_5: number;
-  pms_aqi: number;
-  dev_temp: number;
-  dev_orientation: Orientation;
-  dev_dashboard: string;
-}
-
-export interface DeviceFull {
-  device_urn: string;
   device_class: DeviceClass;
   device: number;
   device_sn: string | null;
