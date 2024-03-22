@@ -19,10 +19,47 @@ function parseDevice(d: any): Device {
   }
 }
 
+function includeDevice(device: Device): boolean {
+  if (device.loc_lon == null || device.loc_lat == null) return false;
+  return device.device_class === DeviceClass.AIRNOTE_SOLAR ||
+    device.device_class === DeviceClass.AIRNOTE_SOLAR_AIR ||
+    device.device_class === DeviceClass.AIRNOTE_SOLAR_RAD ||
+    device.device_class === DeviceClass.BLUES_RADNOTE ||
+    device.device_class === DeviceClass.OZZIE_RADNOTE ||
+    device.device_class === DeviceClass.GNOTE ||
+    device.device_class === DeviceClass.KITTYWOOD;
+}
+
+function createAQIGeoJSON(devices: Device[]): object {
+  return {
+    type: 'FeatureCollection',
+    "name": "safecast-aqi",
+    "crs": {
+      "type": "name",
+      "properties": {
+        "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+      }
+    },
+    features: devices.map(device => ({
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: [device.loc_lon, device.loc_lat],
+      },
+      properties: {
+        title: device.device,
+        description: device.device_urn,
+        device_class: device.device_class,
+        aqi: device.env_temp,
+      },
+    })),
+  };
+}
+
 export const load: PageServerLoad = async ({ params }) => {
   const response = await fetch(url);
   const data = await response.json();
-  return {
-    devices: data.map(parseDevice),
-  };
+  const devices = data.map(parseDevice).filter(includeDevice);
+  const aqiLayer = createAQIGeoJSON(devices);
+  return { devices, aqiLayer };
 };

@@ -5,4 +5,4 @@
 	export let data: PageData;
 </script>
 
-<Map devices={data.devices} />
+<Map devices={data.devices} aqiLayer={data.aqiLayer} />

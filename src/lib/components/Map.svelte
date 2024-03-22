@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { Map, Marker, config } from '@maptiler/sdk';
+	import { Map, Marker, config, helpers } from '@maptiler/sdk';
 	import type { MapOptions } from '@maptiler/sdk';
 	import '@maptiler/sdk/dist/maptiler-sdk.css';
 	import { DeviceClass, type Device } from '$lib/types';
+  import * as d3 from 'd3';
 
 	export let devices: Device[] = [];
+  export let aqiLayer: object = {};
 
 	const markerSize: Array<number> = [30, 30];
 
@@ -47,7 +49,90 @@
 		};
 		map = new Map(options);
 
-		console.log(devices);
+    const tempExtent = d3.extent(devices, (d:Device) => d.env_temp);
+
+    map.on('load', async () => {
+      await helpers.addHeatmap(map!, {
+        data: 'https://api.maptiler.com/data/cf78f6fb-6bac-446f-8a8e-4ae15c0e0201/features.json?key=eALiQdzsgc1xP3bhMxyo',
+        radius: 50,
+      });
+      // map!.addSource('devices', {
+      //   'type': 'geojson',
+      //   'data': aqiLayer,
+      // });
+
+      // map!.addLayer({
+      //   id: 'aqi-heatmap',
+      //   type: 'heatmap',
+      //   source: 'devices',
+      //   maxzoom: 14,
+      //   paint: {
+      //     // Increase the heatmap weight based on frequency and property magnitude
+      //     'heatmap-weight': [
+      //       'interpolate',
+      //       ['linear'],
+      //       ['get', 'aqi'],
+      //       0,
+      //       0,
+      //       120,
+      //       1
+      //     ],
+
+      //     // Increase the heatmap color weight weight by zoom level
+      //     // heatmap-intensity is a multiplier on top of heatmap-weight
+      //     'heatmap-intensity': [
+      //       'interpolate',
+      //       ['linear'],
+      //       ['zoom'],
+      //       0,
+      //       1,
+      //       12,
+      //       3
+      //     ],
+
+      //     // Color ramp for heatmap.  Domain is 0 (low) to 1 (high).
+      //     // Begin color ramp at 0-stop with a 0-transparancy color
+      //     // to create a blur-like effect.
+      //     'heatmap-color': [
+      //       'interpolate',
+      //       ['linear'],
+      //       ['heatmap-density'],
+      //       0, "rgba(68, 1, 84, 0)",
+      //       0.01, "rgba(68, 1, 84, 0.2)",
+      //       0.13, "rgba(71, 44, 122, 1)",
+      //       0.25, "rgba(59, 81, 139, 1)",
+      //       0.38, "rgba(44, 113, 142, 1)",
+      //       0.5, "rgba(33, 144, 141, 1)",
+      //       0.63, "rgba(39, 173, 129, 1)",
+      //       0.75, "rgba(92, 200, 99, 1)",
+      //       0.88, "rgba(170, 220, 50, 1)",
+      //       1, "rgba(253, 231, 37, 1)",
+      //     ],
+
+      //     // Adjust the heatmap radius by zoom level
+      //     'heatmap-radius': [
+      //       'interpolate',
+      //       ['linear'],
+      //       ['zoom'],
+      //       0,
+      //       2,
+      //       9,
+      //       20
+      //     ],
+      //     // Transition from heatmap to circle layer by zoom level
+      //     'heatmap-opacity': [
+      //       'interpolate',
+      //       ['linear'],
+      //       ['zoom'],
+      //       7,
+      //       1,
+      //       18,
+      //       0
+      //     ]
+      //   }
+      // });
+    });
+
 		for (const device of devices) {
 			if (device.loc_lon && device.loc_lat) {
 				var el = document.createElement('div');
