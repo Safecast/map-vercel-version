@@ -1,18 +1,24 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
+  import * as maptilersdk from '@maptiler/sdk';
 	import { Map, Marker, config, helpers } from '@maptiler/sdk';
 	import type { MapOptions } from '@maptiler/sdk';
 	import '@maptiler/sdk/dist/maptiler-sdk.css';
+  import type { FeatureCollection } from 'geojson';
 	import { DeviceClass, type Device } from '$lib/types';
+  import { AqiLevel } from '$lib/aqi';
   import * as d3 from 'd3';
 
 	export let devices: Device[] = [];
-  export let aqiLayer: object = {};
+  export let aqiLayer: FeatureCollection | null = null;
 
 	const markerSize: Array<number> = [30, 30];
 
 	let map: Map | null = null;
+  let pointLayer: any | null = null;
 	let mapContainer: HTMLElement;
+  let markers: Marker[] = [];
+  let showMarkers: boolean = true;
 
 	config.apiKey = 'eALiQdzsgc1xP3bhMxyo';
 
@@ -38,6 +44,18 @@
 		}
 	}
 
+  function addMarkers() {
+    for (const marker of markers) {
+      marker.addTo(map);
+    }
+  }
+
+  function removeMarkers() {
+    for (const marker of markers) {
+      marker.remove();
+    }
+  }
+
 	onMount(() => {
 		const initialState = { lng: 141.021, lat: 37.424, zoom: 12 };
 		const options: MapOptions = {
@@ -49,109 +67,60 @@
 		};
 		map = new Map(options);
 
-    const tempExtent = d3.extent(devices, (d:Device) => d.env_temp);
-
-    map.on('load', async () => {
-      await helpers.addHeatmap(map!, {
-        data: 'https://api.maptiler.com/data/cf78f6fb-6bac-446f-8a8e-4ae15c0e0201/features.json?key=eALiQdzsgc1xP3bhMxyo',
-        radius: 50,
-      });
-      // map!.addSource('devices', {
-      //   'type': 'geojson',
-      //   'data': aqiLayer,
-      // });
-
-      // map!.addLayer({
-      //   id: 'aqi-heatmap',
-      //   type: 'heatmap',
-      //   source: 'devices',
-      //   maxzoom: 14,
-      //   paint: {
-      //     // Increase the heatmap weight based on frequency and property magnitude
-      //     'heatmap-weight': [
-      //       'interpolate',
-      //       ['linear'],
-      //       ['get', 'aqi'],
-      //       0,
-      //       0,
-      //       120,
-      //       1
-      //     ],
-
-      //     // Increase the heatmap color weight weight by zoom level
-      //     // heatmap-intensity is a multiplier on top of heatmap-weight
-      //     'heatmap-intensity': [
-      //       'interpolate',
-      //       ['linear'],
-      //       ['zoom'],
-      //       0,
-      //       1,
-      //       12,
-      //       3
-      //     ],
-
-      //     // Color ramp for heatmap.  Domain is 0 (low) to 1 (high).
-      //     // Begin color ramp at 0-stop with a 0-transparancy color
-      //     // to create a blur-like effect.
-      //     'heatmap-color': [
-      //       'interpolate',
-      //       ['linear'],
-      //       ['heatmap-density'],
-      //       0, "rgba(68, 1, 84, 0)",
-      //       0.01, "rgba(68, 1, 84, 0.2)",
-      //       0.13, "rgba(71, 44, 122, 1)",
-      //       0.25, "rgba(59, 81, 139, 1)",
-      //       0.38, "rgba(44, 113, 142, 1)",
-      //       0.5, "rgba(33, 144, 141, 1)",
-      //       0.63, "rgba(39, 173, 129, 1)",
-      //       0.75, "rgba(92, 200, 99, 1)",
-      //       0.88, "rgba(170, 220, 50, 1)",
-      //       1, "rgba(253, 231, 37, 1)",
-      //     ],
-
-      //     // Adjust the heatmap radius by zoom level
-      //     'heatmap-radius': [
-      //       'interpolate',
-      //       ['linear'],
-      //       ['zoom'],
-      //       0,
-      //       2,
-      //       9,
-      //       20
-      //     ],
-      //     // Transition from heatmap to circle layer by zoom level
-      //     'heatmap-opacity': [
-      //       'interpolate',
-      //       ['linear'],
-      //       ['zoom'],
-      //       7,
-      //       1,
-      //       18,
-      //       0
-      //     ]
-      //   }
-      // });
+    const aqiExtent = d3.extent(devices, (d:Device) => d.aqi);
+    console.log(aqiExtent);
+    const aqiColorScheme = new maptilersdk.ColorRamp({
+      stops: [
+        { value: AqiLevel.Good, color: [123, 218, 114] },
+        { value: AqiLevel.Moderate, color: [240, 196, 44] },
+        { value: AqiLevel.UnhealthyIfSensitive, color: [242, 137, 38] },
+        { value: AqiLevel.Unhealthy, color: [236, 43, 69] },
+        { value: AqiLevel.VeryUnhealthy, color: [203, 36, 176] },
+        { value: AqiLevel.Hazardous, color: [100, 30, 156] },
+        { value: AqiLevel.VeryHazardous, color: [0, 0, 0] },
+      ]
     });
 
-		for (const device of devices) {
-			if (device.loc_lon && device.loc_lat) {
-				var el = document.createElement('div');
-				el.className = 'marker';
-				el.style.backgroundImage = deviceMarker(device);
-				el.style.width = `${markerSize[0]}px`;
-				el.style.height = `${markerSize[1]}px`;
-				el.style.backgroundSize = `${markerSize[0]}px ${markerSize[1]}px`;
+    map.on('zoom', () => {
+      const zoom = map.getZoom();
+      if (zoom > 9 && !showMarkers) {
+        addMarkers();
+        showMarkers = true;
+      } else if (zoom <= 9 && showMarkers) {
+        removeMarkers();
+        showMarkers = false;
+      }
+    });
 
-				// el.addEventListener('click', function () {
-				// 	window.alert(marker.properties.message);
-				// });
-				const marker = new Marker({
-					element: el
-				})
-					.setLngLat([device.loc_lon, device.loc_lat])
-					.addTo(map);
-			}
-		}
+    map.on('load', async () => {
+      pointLayer = await helpers.addPoint(map, {
+        layerId: "devices",
+        data: aqiLayer,
+        property: "aqiLevel",
+        pointColor: aqiColorScheme,
+        pointRadius: 70,
+        pointOpacity: 0.7,
+        showLabel: true,
+      });
+
+      for (const device of devices) {
+        if (device.loc_lon && device.loc_lat) {
+          var el = document.createElement('div');
+          el.className = 'marker';
+          el.style.backgroundImage = deviceMarker(device);
+          el.style.width = `${markerSize[0]}px`;
+          el.style.height = `${markerSize[1]}px`;
+          el.style.backgroundSize = `${markerSize[0]}px ${markerSize[1]}px`;
+
+          const marker = new Marker({ element: el })
+            .setLngLat([device.loc_lon, device.loc_lat]);
+          markers.push(marker);
+        }
+      }
+      if (showMarkers) {
+          addMarkers();
+      }
+    });
 	});
 
 	onDestroy(() => {

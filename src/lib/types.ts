@@ -123,4 +123,7 @@ export interface Device {
   opc_pm01_0: number;
   opc_pm02_5: number;
   opc_pm10_0: number;
+
+  aqi: number;
+  aqiLevel: string;
 }
