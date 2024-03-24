@@ -1,17 +1,28 @@
-// Assuming ttdata.AqiLevel* constants are something like the following:
-export enum AqiLevel {
-  Good = 0,
-  Moderate = 1,
-  UnhealthyIfSensitive = 2,
-  Unhealthy = 3,
-  VeryUnhealthy = 4,
-  Hazardous = 5,
-  VeryHazardous = 6,
+import { AqiLevel, type Device } from "./types";
+
+
+// Adjust humidity according to US EPA PM2.5 adjustment factor
+// https://amt.copernicus.org/preprints/amt-2020-413/amt-2020-413.pdf
+// https://cfpub.epa.gov/si/si_public_file_download.cfm?p_download_id=540979&Lab=CEMM
+function adjustPM25ForHumidity(device: Device): number {
+  let pmIn: number = device.pms_pm02_5;
+  let pmOut: number = device.pms_pm02_5;
+
+  if (device.env_humid !== undefined) {
+    pmOut = (0.524 * pmIn) - (0.0852 * device.env_humid) + 5.72;
+  }
+
+  // PM goes negative at low PMs and high humidity
+  if (pmOut < 0) {
+    pmOut = 0;
+  }
+
+  return pmOut;
 }
 
 // Calculate AQI for PM2.5
 // https://forum.airnowtech.org/t/the-aqi-equation/169
-export function pmToAqi(concIn: number): { aqi: number; aqiLevel: number } {
+function pmToAqi(concIn: number): { aqi: number; aqiLevel: number } {
   let concLo: number, concHi: number, aqiLo: number, aqiHi: number;
   let aqiLevel: number | null = null;
 
@@ -84,4 +95,18 @@ export function pmToAqi(concIn: number): { aqi: number; aqiLevel: number } {
     // Compute the AQI according to the equation
     return { aqi: Math.round((((aqiHi - aqiLo) / (concHi - concLo)) * (concIn - concLo)) + aqiLo), aqiLevel };
   }
+}
+
+// Calculate AQI
+export function calculateAqi(device: Device) {
+  // Perform calculations based on sensor type
+  if (device.pms_pm02_5 !== undefined) {
+    const aqiPm = adjustPM25ForHumidity(device);
+    const { aqi, aqiLevel } = pmToAqi(aqiPm);
+    device.opc_aqiLevel = aqiLevel;
+    device.opc_aqiPm = aqiPm;
+    device.opc_aqi = aqi;
+  }
+  return device;
+  // Additional sensor types would be processed similarly...
 }

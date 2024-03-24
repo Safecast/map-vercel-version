@@ -24,6 +24,16 @@ export enum Orientation {
   ANGLED = "angled",
 }
 
+export enum AqiLevel {
+  Good = 0,
+  Moderate = 1,
+  UnhealthyIfSensitive = 2,
+  Unhealthy = 3,
+  VeryUnhealthy = 4,
+  Hazardous = 5,
+  VeryHazardous = 6,
+}
+
 export interface Device {
   device_urn: string;
   device_class: DeviceClass;
@@ -124,6 +134,7 @@ export interface Device {
   opc_pm02_5: number;
   opc_pm10_0: number;
 
-  aqi: number;
-  aqiLevel: string;
+  opc_aqi: number;
+  opc_aqiPm: number;
+  opc_aqiLevel: AqiLevel;
 }
