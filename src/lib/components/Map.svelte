@@ -61,7 +61,7 @@
 		const options: MapOptions = {
 			container: mapContainer,
 			style:
-				'https://api.maptiler.com/maps/b946056e-74c5-4c2b-bfeb-4c580c588f62/style.json?key=eALiQdzsgc1xP3bhMxyo',
+				'https://api.maptiler.com/maps/7b31f391-e6fd-4cf8-a7ff-ff381a77c465/?key=z5dZgfJPc4cYfwmcbFXd#1.0/0.00000/0.00000',
 			center: [initialState.lng, initialState.lat],
 			zoom: initialState.zoom
 		};
