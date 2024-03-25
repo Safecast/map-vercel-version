@@ -71,6 +71,7 @@
 			<SidebarWrapper divClass="overflow-y-auto py-2 px-1 dark:bg-gray-800">
 				<SidebarGroup>
 					<SidebarItem label="About this map" href="/about" active={activeUrl === `/about`} />
+					<SidebarItem label="About Safecast" href="/safecast" active={activeUrl === `safecast`} />
 					<SidebarItem label="Donate" href="https://blog.safecast.org/donate/" />
 					<SidebarItem label="News" href="https://blog.safecast.org/" />
 				</SidebarGroup>
