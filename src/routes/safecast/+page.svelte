@@ -1,2 +1,2 @@
-<h1>About Safecast/h1>
+<h1>About Safecast</h1>
 
