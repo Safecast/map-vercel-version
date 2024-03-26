@@ -1,3 +1,8 @@
+# Run dev
+
+* `npm install`
+* `npm run dev`
+
 # Relevant MapTiler examples
 
 * https://docs.maptiler.com/sdk-js/examples/line-gradient/
