@@ -1,3 +1,10 @@
+export enum Layer {
+  AIR = "air",
+  RADIATION = "rad",
+}
+
+export interface AppState { }
+
 export enum DeviceClass {
   AIRNOTE_SOLAR_AIR = "product:org.airnote.solar.air.v1",
   AIRNOTE_SOLAR_RAD = "product:org.airnote.solar.rad.v1",
