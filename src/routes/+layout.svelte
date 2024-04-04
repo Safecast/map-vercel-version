@@ -41,6 +41,8 @@
 	};
 
   $: activeUrl = $page.url.pathname;
+
+  const activeClass: string = "text-red-500";
 </script>
 
 <svelte:window bind:innerWidth={width} />
@@ -53,8 +55,8 @@
       onClick={toggleDrawer}
     />
     <NavUl>
-      <NavLi active={$layer === Layer.AIR} on:click={() => setLayer("air")}>Air</NavLi>
-      <NavLi active={$layer === Layer.RADIATION} on:click={() => setLayer("rad")}>Radiation</NavLi>
+      <NavLi class={`cursor-pointer ${$layer === Layer.AIR && activeClass}`} on:click={() => setLayer("air")}>Air</NavLi>
+      <NavLi class={`cursor-pointer ${$layer === Layer.RADIATION && activeClass}`} on:click={() => setLayer("rad")}>Radiation</NavLi>
     </NavUl>
     <NavBrand href="/map" class="">
       <img src="/logo.svg" class="me-3 h-6 sm:h-9" alt="Safecast Logo" />
