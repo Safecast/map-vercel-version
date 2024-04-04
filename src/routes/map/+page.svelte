@@ -46,6 +46,17 @@
     ]
   });
 
+  const safecastRadiationColorScheme = new ColorRamp({
+    stops: [
+      { value: 12, color: [88, 129, 200] },
+      { value: 35, color: [159, 191, 240] },
+      { value: 55, color: [204, 167, 223] },
+      { value: 150, color: [233, 116, 127] },
+      { value: 250, color: [240, 229, 125] },
+      // { value: AqiLevel.Hazardous, color: [255, 255, 255] },
+    ]
+  });
+
   function airDevices(device: Device): boolean {
     if (device.loc_lon == null || device.loc_lat == null) return false;
     return device.device_class === DeviceClass.AIRNOTE_SOLAR ||
@@ -106,7 +117,8 @@
     } else if (layer === Layer.RADIATION) {
       layerData = createRadGeoJSON(data.devices.filter(radDevices));
       const minMaxRad = extent(layerData.features, d => d.properties.rad);
-      color = ColorRampCollection.PORTLAND.scale(minMaxRad[0], minMaxRad[1]).resample("ease-out-sqrt")
+      color = safecastRadiationColorScheme;
+      // color = ColorRampCollection.PORTLAND.scale(minMaxRad[0], minMaxRad[1]).resample("ease-out-sqrt")
       property = "rad";
     }
 
